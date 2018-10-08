@@ -5,7 +5,17 @@ import * as path from 'path';
 export default class CobolDefinitionProvider implements vscode.DefinitionProvider {
     public async provideDefinition(document: vscode.TextDocument, position: vscode.Position, token: vscode.CancellationToken): Promise<vscode.Location[]> {
         let location:vscode.Location[] = [];
-        let loc = this.findVarInLocal(document,position);
+        let loc;
+
+        if (document.lineAt(position.line).text.match("^.{6} .*(PERFORM|THRU|GO TO)")){
+            loc = this.getParaLocation(document,position);
+            if (loc){
+                location.push(loc);
+            }
+            return location;
+        }
+
+        loc = this.findVarInLocal(document,position);
 
         if (loc){   //find in local file, then not in copybook
             location.push(loc);
@@ -17,19 +27,39 @@ export default class CobolDefinitionProvider implements vscode.DefinitionProvide
 
     }
 
+    private getParaLocation(document: vscode.TextDocument, position: vscode.Position): vscode.Location | undefined {
+        let wordRange = document.getWordRangeAtPosition(position,new RegExp('[a-zA-Z0-9_\\-]+'));
+        let word = wordRange ? document.getText(wordRange) : '';
+        if (word === ""){
+            return undefined;
+        }
+
+        let lineText: String;
+        for (let i = 1; i < document.lineCount; i++){
+            lineText = document.lineAt(i).text;
+            if (lineText.match("^.{6} " + word + "[\\.$| +SECTION.$]")){
+                return new vscode.Location(
+                    document.uri,
+                    new vscode.Position(i,7)
+                );
+            }
+        }
+        return undefined;
+    }
+
     private findVarInLocal(document: vscode.TextDocument,position: vscode.Position): vscode.Location | undefined {
         let i = 0;
         let wordRange = document.getWordRangeAtPosition(position,new RegExp('[a-zA-Z0-9_\\-]+'));
         let word = wordRange ? document.getText(wordRange) : '';
         let regProcedure = new RegExp("^.{6} +PROCEDURE DIVISION.*","i");
-        if ( word == ''){
+        if ( word === ''){
             return undefined;
         }
 
         let lineText: String;
         let varReg = new RegExp("^.{6} .* " + word + ".*");
         for (i = 1; i < document.lineCount; i++){
-            lineText = document.lineAt(i).text
+            lineText = document.lineAt(i).text;
             if (lineText.match(varReg)){
                 return new vscode.Location (
                     document.uri,
@@ -82,14 +112,14 @@ export default class CobolDefinitionProvider implements vscode.DefinitionProvide
 
     private getCopybooks(document: vscode.TextDocument): [string,string][] {
         // const regCopy = new RegExp("^.{6} .*(COPY .*\\.$)","igm");
-        const regCopy = new RegExp("^.{6} .*(COPY.*)\\.$","igm");
+        const regCopy = new RegExp("^.{6} .*(COPY.*)","igm");
         let copybookLines = document.getText().match(regCopy);
         let copybooks: [string,string][] = [];
         if (copybookLines) {
             copybookLines.forEach(element => {
                 let elementSplict = element.split(new RegExp(" +"));
-                let copybookNameIndex = elementSplict.findIndex(element => {return element == "COPY"}) + 1;
-                let copybookFolderIndex = elementSplict.findIndex(element => {return element == "IN"}) + 1;
+                let copybookNameIndex = elementSplict.findIndex(element => {return element === "COPY";}) + 1;
+                let copybookFolderIndex = elementSplict.findIndex(element => {return element === "IN";}) + 1;
                 if (copybookNameIndex > 1 && copybookFolderIndex > 1){
                     copybooks.push([elementSplict[copybookNameIndex], elementSplict[copybookFolderIndex].replace(".","")]);
                 }
@@ -105,12 +135,12 @@ export default class CobolDefinitionProvider implements vscode.DefinitionProvide
         let line = 0;
         let lineText;
         for(line = 1; line < document.lineCount; line++) {
-            lineText = document.lineAt(line).text
+            lineText = document.lineAt(line).text;
             if (lineText.match(new RegExp("^.{6} .*" + wordSuffix + ".*"))) {
                 return new vscode.Location(
                     uri,
                     new vscode.Position(line,lineText.search(wordSuffix))
-                )
+                );
             }
         }
     }

@@ -7,9 +7,9 @@ import { DocComment } from './formatting/DocComment';
 import { TextAutocompleteCompletionItemProvider } from './textprovider';
 import { cobolKeywords } from './keywords/cobolKeywords';
 import { jclStatements } from "./keywords/jclstatements";
-//import CobolDocumentSymbolProvider from './cobolDocumentSymbolProvider';
+import CobolDocumentSymbolProvider from './cobolDocumentSymbolProvider';
 import CobolDefinitionProvider from './cobolDefinitionProvider';
-import CobolDocumentSymbolProvider from './symbolprovider';
+//import CobolDocumentSymbolProvider from './symbolprovider';
 
 export function activate(context: ExtensionContext) {
     var move2pdCommand = commands.registerCommand('cobolplugin.move2pd', function () {
