@@ -1,5 +1,21 @@
-# COBOL/DIR/jCL Change Log
+# COBOL,.DIR, PL/I & jCL Change Log
 
+## Version - 3.7.0
+ - Add very simple PL/I tmLanguage, just because I was fed up seeing "plain" text
+
+## Version - 3.6.3
+ - Tweak quotes in symbol provider (still not 100% happy but should be better)
+ - Add enum-id, interface-id, valuetype-id to symbol provider
+ 
+## Version - 3.6.2
+ - Fix broken symbol provider due to removing a warning without looking closer at it, silly me.. sorry
+ 
+## Version - 3.6.1
+ - Tweak the symbol provider, heath robinson style, #34
+ 
+## Version - 3.6
+ - Add ultra simple symbol provider to mark program-id, division's and sections
+ 
 ## Version - 3.5.1
  - Add JCL keyword provider with a simple list of statements
 

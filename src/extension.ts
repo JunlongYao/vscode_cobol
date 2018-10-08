@@ -7,8 +7,9 @@ import { DocComment } from './formatting/DocComment';
 import { TextAutocompleteCompletionItemProvider } from './textprovider';
 import { cobolKeywords } from './keywords/cobolKeywords';
 import { jclStatements } from "./keywords/jclstatements";
-import CobolDocumentSymbolProvider from './cobolDocumentSymbolProvider';
+//import CobolDocumentSymbolProvider from './cobolDocumentSymbolProvider';
 import CobolDefinitionProvider from './cobolDefinitionProvider';
+import CobolDocumentSymbolProvider from './symbolprovider';
 
 export function activate(context: ExtensionContext) {
     var move2pdCommand = commands.registerCommand('cobolplugin.move2pd', function () {
@@ -60,9 +61,9 @@ export function activate(context: ExtensionContext) {
     //     }
     // });
 
-    const symbol = new CobolDocumentSymbolProvider();
-    context.subscriptions.push(languages.registerDocumentSymbolProvider(allCobolSelectors,symbol));
-    context.subscriptions.push(DocComment.register());
+    // const symbol = new CobolDocumentSymbolProvider();
+    // context.subscriptions.push(languages.registerDocumentSymbolProvider(allCobolSelectors,symbol));
+    // context.subscriptions.push(DocComment.register());
 
 	const completionItemProvider = new TextAutocompleteCompletionItemProvider(cobolKeywords);
     /* TODO: find out the ACU & OpenCOBOL/GNU keyword list */
@@ -78,6 +79,10 @@ export function activate(context: ExtensionContext) {
     context.subscriptions.push(completionJCLItemProviderDisposable);
 
     /* TODO: add .DIR keywords too */ 
+
+    const symbol = new CobolDocumentSymbolProvider();
+    context.subscriptions.push(languages.registerDocumentSymbolProvider(allCobolSelectors,symbol));
+    context.subscriptions.push(DocComment.register());
 }
 
 export function deactivate() {

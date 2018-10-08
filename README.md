@@ -6,7 +6,7 @@
 --------------
 
 ## What is this?
-Syntax highlighting for COBOL, JCL and MF directive files.
+Syntax highlighting for COBOL, JCL, PL/I and MF directive files.
 
 ## What is this not?
 An Integrated Development Environment for COBOL.
@@ -18,7 +18,7 @@ Quick viewing of COBOL source and edit.
 Everywhere Visual Studio Code works.. aka Windows, Linux and Mac OSX.
 
 ## What does it look like?
- ![pi.cbl](https://raw.githubusercontent.com/spgennard/vscode_cobol/master/images/screenshot_pi.png)
+ ![sieve_jcl](https://raw.githubusercontent.com/spgennard/vscode_cobol/master/images/screenshot_three.png)
 
 ## Keybinds
 
