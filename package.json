@@ -1,8 +1,8 @@
 {
-    "name": "cobol",
+    "name": "cobolYoucash",
     "displayName": "COBOL",
     "description": "COBOL/JCL/DIR syntax support",
-    "version": "3.5.1",
+    "version": "3.5.3",
     "publisher": "bitlang",
     "repository": {
         "type": "git",

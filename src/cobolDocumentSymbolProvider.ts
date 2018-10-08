@@ -2,9 +2,9 @@ import * as vscode from 'vscode';
 
 export default class CobolDocumentSymbolProvider implements vscode.DocumentSymbolProvider {
 
-    public async provideDocumentSymbols(document: vscode.TextDocument,token: vscode.CancellationToken): Promise<vscode.DocumentSymbol[]>{
+    public provideDocumentSymbols(document: vscode.TextDocument,token: vscode.CancellationToken): vscode.DocumentSymbol[]{
         let symbol: vscode.DocumentSymbol[] = [];
-        symbol = await this.buildDocumentSymbol(document,symbol);
+        symbol = this.buildDocumentSymbol(document,symbol);
         return symbol;
     }
 
@@ -30,7 +30,7 @@ export default class CobolDocumentSymbolProvider implements vscode.DocumentSymbo
                         new vscode.Range(range1.start,range2.start),
                         range1
                     )
-                )
+                );
             } else {
                 symbol.push(
                     new vscode.DocumentSymbol(
@@ -40,7 +40,7 @@ export default class CobolDocumentSymbolProvider implements vscode.DocumentSymbo
                         new vscode.Range(range1.start,new vscode.Position(document.lineCount,0)),
                         range1
                     )
-                )
+                );
             }
 
             range1 = range2;
@@ -49,7 +49,7 @@ export default class CobolDocumentSymbolProvider implements vscode.DocumentSymbo
     }
 
     private lineOfProcedureDivition (document:vscode.TextDocument): number | undefined {
-        const regProcedure = new RegExp("^.{6} PROCEDURE DIVISION","i");
+        const regProcedure = new RegExp("^.{6} +PROCEDURE DIVISION","i");
         let i: number;
         for (i = 0;i < document.lineCount;i++) {
             if (document.lineAt(i).text.match(regProcedure)) {
