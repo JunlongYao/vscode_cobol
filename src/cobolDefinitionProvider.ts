@@ -7,7 +7,7 @@ export default class CobolDefinitionProvider implements vscode.DefinitionProvide
         let location:vscode.Location[] = [];
         let loc;
 
-        if (document.lineAt(position.line).text.match("^.{6} .*(PERFORM|THRU|GO TO)")){
+        if (document.lineAt(position.line).text.match("^.{6} .*(PERFORM +(?!UNTIL|VARYING)|THRU|GO TO)")){
             loc = this.getParaLocation(document,position);
             if (loc){
                 location.push(loc);

@@ -3,44 +3,93 @@ import * as vscode from 'vscode';
 export default class CobolDocumentSymbolProvider implements vscode.DocumentSymbolProvider {
 
     public provideDocumentSymbols(document: vscode.TextDocument,token: vscode.CancellationToken): vscode.DocumentSymbol[]{
-        let symbol: vscode.DocumentSymbol[] = [];
-        symbol = this.buildDocumentSymbol(document,symbol);
-        return symbol;
+        let symbolDivision = this.getDivisionRange(document);
+
+        if (symbolDivision){
+            let range1: vscode.Range | undefined;
+            let range2: vscode.Range | undefined;
+            const regParagraph = new RegExp("^.{6} (\\w[^ ]*\\.$|.* SECTION\\.$)","igm");
+
+            for (let symbol of symbolDivision){
+                if (symbol.name.includes("IDENTIFICATION")){ //I don't need this info
+                    continue;
+                }
+
+                let symbolParagraph: vscode.DocumentSymbol[] = [];
+
+                range1 = this.getNextSymbolRange(document,symbol.range.start.line,symbol.range.end.line,regParagraph);
+                while (range1) {    //get symbols of paragraphs
+                    range2 = this.getNextSymbolRange(document,range1.start.line,symbol.range.end.line,regParagraph);
+                    if (range2) {
+                        symbolParagraph.push(
+                            new vscode.DocumentSymbol(
+                                document.getText(range1).substring(7),
+                                "",
+                                document.getText(range1).includes(" SECTION") ? 4:5,
+                                new vscode.Range(range1.start,range2.start),
+                                range1
+                            )
+                        );
+                    } else {
+                        symbolParagraph.push(
+                            new vscode.DocumentSymbol(
+                                document.getText(range1).substring(7),
+                                "",
+                                document.getText(range1).includes(" SECTION") ? 4:5,
+                                new vscode.Range(range1.start,new vscode.Position(symbol.range.end.line,0)),
+                                range1
+                            )
+                        );
+                    }
+        
+                    range1 = range2;
+                }
+
+                symbol.children = symbolParagraph;
+            }
+        }
+
+        return symbolDivision;
     }
 
-    private buildDocumentSymbol(document: vscode.TextDocument, symbol: vscode.DocumentSymbol[]): vscode.DocumentSymbol[] {
-        let line: number | undefined;
+    private getDivisionRange(document: vscode.TextDocument): vscode.DocumentSymbol[] {
+        const regDivistion = new RegExp("^.{6} .* +(DIVISION)","i");
+        const regProcedureDivistion = new RegExp("^.{6} +PROCEDURE DIVISION","i");
+        let symbol:vscode.DocumentSymbol[] = [];
         let range1: vscode.Range | undefined;
         let range2: vscode.Range | undefined;
 
-        line = this.lineOfProcedureDivition(document);
+        range1 = this.getNextSymbolRange(document,0,document.lineCount,regDivistion);
+        while(range1){
+            if (document.lineAt(range1.start.line).text.match(regProcedureDivistion)) {
+                symbol.push(new vscode.DocumentSymbol(
+                    document.getText(range1).substring(7),
+                    "",
+                    3,
+                    new vscode.Range(range1.start, new vscode.Position(document.lineCount - 1,0)),
+                    range1
+                ));
 
-        if (line) {
-            range1 = this.getNextSymbolRange(document,line);
-        }
+                break;
+            }
 
-        while (range1) {
-            range2 = this.getNextSymbolRange(document,range1.start.line);
-            if (range2) {
-                symbol.push(
-                    new vscode.DocumentSymbol(
-                        document.getText(range1).substring(7),
-                        "",
-                        5,
-                        new vscode.Range(range1.start,range2.start),
-                        range1
-                    )
-                );
+            range2 = this.getNextSymbolRange(document,range1.start.line,document.lineCount,regDivistion);
+            if (range2){
+                symbol.push(new vscode.DocumentSymbol(
+                    document.getText(range1).substring(7),
+                    "",
+                    3,
+                    new vscode.Range(range1.start,range2.start),
+                    range1
+                ));
             } else {
-                symbol.push(
-                    new vscode.DocumentSymbol(
-                        document.getText(range1).substring(7),
-                        "",
-                        5,
-                        new vscode.Range(range1.start,new vscode.Position(document.lineCount,0)),
-                        range1
-                    )
-                );
+                symbol.push(new vscode.DocumentSymbol(
+                    document.getText(range1).substring(7),
+                    "",
+                    3,
+                    new vscode.Range(range1.start,new vscode.Position(document.lineCount - 1,0)),
+                    range1
+                ));
             }
 
             range1 = range2;
@@ -48,22 +97,10 @@ export default class CobolDocumentSymbolProvider implements vscode.DocumentSymbo
         return symbol;
     }
 
-    private lineOfProcedureDivition (document:vscode.TextDocument): number | undefined {
-        const regProcedure = new RegExp("^.{6} +PROCEDURE DIVISION","i");
-        let i: number;
-        for (i = 0;i < document.lineCount;i++) {
-            if (document.lineAt(i).text.match(regProcedure)) {
-                return i;
-            }
-        }
-    }
-
-    private getNextSymbolRange(document: vscode.TextDocument,line: number): vscode.Range | undefined {
-        const regParagraph = new RegExp("^.{6} (\\w[^ ]*\\.$)|(.* section\\.$)","igm");
-        let i: number;
+    private getNextSymbolRange(document: vscode.TextDocument,startLine: number,endLine: number, regex: RegExp): vscode.Range | undefined {
         let range;
-        for (i = line + 1;i < document.lineCount;i++) {
-            range = document.getWordRangeAtPosition(new vscode.Position(i,0),regParagraph);
+        for (let i = startLine + 1; i <= endLine; i++) {
+            range = document.getWordRangeAtPosition(new vscode.Position(i,0),regex);
             if (range) {
                 return range;
             }
